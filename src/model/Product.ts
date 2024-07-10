@@ -6,22 +6,25 @@ export interface IProduct extends Document {
   description: string;
 }
 
-const productSchema: Schema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
+const productSchema: Schema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    description: {
+      type: String,
+    },
+    status: {
+      type: Boolean,
+    },
   },
-  price: {
-    type: Number,
-    required: true,
-  },
-  description: {
-    type: String,
-  },
-  status: {
-    type: Boolean,
-  },
-});
+  { collection: "product" }
+);
 
 const Product =
   mongoose.models.Product || mongoose.model<IProduct>("Product", productSchema);
