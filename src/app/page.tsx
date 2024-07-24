@@ -1,7 +1,7 @@
-import { getPosts } from "@/_actions/postAction";
+import { getProducts } from "@/_actions/postAction";
 
 export default async function Home() {
-  const { data, error } = await getPosts();
+  const { data, error } = await getProducts();
 
   if (error) {
     return <h1>{error}</h1>;

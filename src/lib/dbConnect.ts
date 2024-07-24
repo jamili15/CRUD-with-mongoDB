@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const dbConnect = async () => {
   if (mongoose.connections[0].readyState) {
+    console.log("MongDB is already connected");
     return true;
   }
 
