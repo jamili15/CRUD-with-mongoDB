@@ -65,3 +65,37 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+// EDIT handler to update a product by ID
+export async function PUT(req: NextRequest) {
+  await dbConnect();
+
+  try {
+    const body = await req.json();
+
+    if (!body.id || (!body.name && !body.price && !body.description)) {
+      return NextResponse.json(
+        { error: "Product ID and at least one field to update are required" },
+        { status: 400 }
+      );
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      body.id,
+      {
+        ...(body.name && { name: body.name }),
+        ...(body.price && { price: body.price }),
+        ...(body.description && { description: body.description }),
+      },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedProduct, { status: 200 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

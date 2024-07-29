@@ -16,6 +16,8 @@ export default function Page() {
   const [description, setDescription] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     try {
@@ -33,6 +35,14 @@ export default function Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEditing && editId) {
+      handleEditSubmit();
+    } else {
+      handleCreateSubmit();
+    }
+  };
+
+  const handleCreateSubmit = async () => {
     try {
       const res = await fetch("/api/products", {
         method: "POST",
@@ -48,10 +58,37 @@ export default function Page() {
 
       const newProduct: Product = await res.json();
       setProducts((prevProducts) => [...prevProducts, newProduct]);
-      setName("");
-      setPrice("");
-      setDescription("");
+      resetForm();
       setSuccess("Product created successfully");
+      setError(null);
+    } catch (error: any) {
+      setError(error.message);
+      setSuccess(null);
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const res = await fetch("/api/products", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: editId, name, price, description }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to edit product");
+      }
+
+      const updatedProduct: Product = await res.json();
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product._id === editId ? updatedProduct : product
+        )
+      );
+      resetForm();
+      setSuccess("Product edited successfully");
       setError(null);
     } catch (error: any) {
       setError(error.message);
@@ -84,6 +121,22 @@ export default function Page() {
     }
   };
 
+  const handleEdit = (product: Product) => {
+    setIsEditing(true);
+    setEditId(product._id);
+    setName(product.name);
+    setPrice(product.price.toString());
+    setDescription(product.description);
+  };
+
+  const resetForm = () => {
+    setIsEditing(false);
+    setEditId(null);
+    setName("");
+    setPrice("");
+    setDescription("");
+  };
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -100,12 +153,14 @@ export default function Page() {
             <p>{product.description}</p>
             <p>{product.price}</p>
           </div>
-
-          <button onClick={() => handleDelete(product._id)}>Delete</button>
+          <div>
+            <button onClick={() => handleEdit(product)}>Edit</button>
+            <button onClick={() => handleDelete(product._id)}>Delete</button>
+          </div>
         </div>
       ))}
 
-      <h2>Add a New Product</h2>
+      <h2>{isEditing ? "Edit Product" : "Add a New Product"}</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Name:</label>
@@ -132,7 +187,9 @@ export default function Page() {
             onChange={(e) => setDescription(e.target.value)}
           ></textarea>
         </div>
-        <button type="submit">Add Product</button>
+        <button type="submit">
+          {isEditing ? "Edit Product" : "Add Product"}
+        </button>
       </form>
     </div>
   );
